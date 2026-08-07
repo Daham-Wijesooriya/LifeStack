@@ -1,4 +1,4 @@
-import { addDays, format, parseISO, startOfWeek } from 'date-fns';
+import { addDays, differenceInMinutes, format, parseISO, startOfWeek } from 'date-fns';
 
 /**
  * Local calendar day as YYYY-MM-DD. Never derive this from
@@ -118,4 +118,69 @@ export function computeCompletionRate(
   const rates = Array.from(countsByWeek.values(), (count) => Math.min(count / target, 1));
   const average = rates.reduce((sum, rate) => sum + rate, 0) / rates.length;
   return Math.round(average * 100);
+}
+
+/** Local wall-clock time as "HH:mm" (24-hour), for TimeField's value. */
+export function formatTimeHHmm(date: Date): string {
+  return format(date, 'HH:mm');
+}
+
+/**
+ * Combines a local calendar day with a local "HH:mm" time into a full
+ * instant (UTC ISO, matching the nowISO() convention above).
+ */
+export function combineDateAndTimeISO(dateISO: string, timeHHmm: string): string {
+  const [hoursRaw, minutesRaw] = timeHHmm.split(':');
+  const date = parseISO(dateISO);
+  date.setHours(Number(hoursRaw ?? 0), Number(minutesRaw ?? 0), 0, 0);
+  return date.toISOString();
+}
+
+/**
+ * Which calendar day a bedtime belongs to, given the date being logged
+ * (conventionally the *wake* date). A bedtime at or after noon is "last
+ * night" (the day before); before noon means they went to bed after
+ * midnight, so it's still the logged date itself.
+ */
+export function inferBedtimeDateISO(wakeDateISO: string, bedtimeHHmm: string): string {
+  const hours = Number(bedtimeHHmm.split(':')[0] ?? 0);
+  return hours >= 12 ? addDaysISO(wakeDateISO, -1) : wakeDateISO;
+}
+
+export function minutesBetweenISO(startISO: string, endISO: string): number {
+  return differenceInMinutes(parseISO(endISO), parseISO(startISO));
+}
+
+/** 452 -> "7h 32m" */
+export function formatDurationMinutes(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
+/**
+ * A 0-100 regularity score for bedtimes: 100 means every logged bedtime was
+ * at the same wall-clock time, dropping toward 0 as they spread out over a
+ * ~2-hour window. Bedtimes are measured in "minutes since noon" rather than
+ * "minutes since midnight" so a realistic spread (evening through early
+ * morning) doesn't wrap around the raw 0-1440 scale — this breaks down only
+ * for bedtimes between noon and 6pm, which aren't realistic bedtimes.
+ */
+export function computeSleepConsistency(bedtimes: readonly string[]): number {
+  if (bedtimes.length === 0) return 0;
+  if (bedtimes.length === 1) return 100;
+
+  const noon = 12 * 60;
+  const values = bedtimes.map((iso) => {
+    const date = parseISO(iso);
+    const minutesSinceMidnight = date.getHours() * 60 + date.getMinutes();
+    return minutesSinceMidnight >= noon ? minutesSinceMidnight - noon : minutesSinceMidnight + (24 * 60 - noon);
+  });
+
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+  const stdDevMinutes = Math.sqrt(variance);
+
+  const score = 100 - (stdDevMinutes / 120) * 100;
+  return Math.round(Math.max(0, Math.min(100, score)));
 }
