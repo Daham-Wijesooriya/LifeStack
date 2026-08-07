@@ -1,49 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
-import {
-  BudgetFormSheet,
-  BudgetProgressRow,
-  CategoryPieChart,
-  MonthlyTrendChart,
-  TransactionFormSheet,
-  TransactionRow,
-} from '@/components/finance';
+import { CategoryPieChart, TransactionFormSheet, TransactionRow } from '@/components/finance';
 import { Button, Card, EmptyState, Text } from '@/components/ui';
 import type { Transaction } from '@/db/schema';
 import { useFinanceStats } from '@/hooks/useFinanceStats';
-import { addMonthsISO, formatMonthLabel } from '@/lib/date';
 import { formatCurrency } from '@/lib/currency';
+import { addMonthsISO, formatMonthLabel } from '@/lib/date';
 import { useFinanceStore } from '@/store/financeStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 export default function FinanceScreen() {
-  const {
-    currentMonth,
-    transactions,
-    budgets,
-    status,
-    error,
-    loadMonth,
-    createTransaction,
-    updateTransaction,
-    deleteTransaction,
-    setBudget,
-  } = useFinanceStore();
+  const { currentMonth, transactions, status, error, loadMonth, createTransaction, updateTransaction, deleteTransaction } =
+    useFinanceStore();
+  const currency = useSettingsStore((state) => state.currency);
 
   const [transactionFormVisible, setTransactionFormVisible] = useState(false);
-  const [budgetFormVisible, setBudgetFormVisible] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
 
   useEffect(() => {
     void loadMonth();
   }, [loadMonth]);
 
-  const stats = useFinanceStats(transactions, budgets, currentMonth);
-
-  const monthTransactions = useMemo(
-    () => transactions.filter((t) => t.date.startsWith(currentMonth)).sort((a, b) => b.date.localeCompare(a.date)),
-    [transactions, currentMonth],
-  );
+  const stats = useFinanceStats(transactions);
+  const sortedTransactions = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
 
   function openCreateTransaction() {
     setEditingTransaction(undefined);
@@ -86,7 +66,7 @@ export default function FinanceScreen() {
       </View>
 
       <FlatList
-        data={monthTransactions}
+        data={sortedTransactions}
         keyExtractor={(transaction) => String(transaction.id)}
         contentContainerClassName="gap-sm pb-2xl"
         ListHeaderComponent={
@@ -94,7 +74,7 @@ export default function FinanceScreen() {
             <View className="flex-row gap-md">
               <Card className="flex-1 items-center">
                 <Text variant="lg" weight="bold" color="success">
-                  {formatCurrency(stats.monthIncome)}
+                  {formatCurrency(stats.monthIncome, currency)}
                 </Text>
                 <Text variant="sm" color="secondary">
                   income
@@ -102,7 +82,7 @@ export default function FinanceScreen() {
               </Card>
               <Card className="flex-1 items-center">
                 <Text variant="lg" weight="bold" color="danger">
-                  {formatCurrency(stats.monthExpense)}
+                  {formatCurrency(stats.monthExpense, currency)}
                 </Text>
                 <Text variant="sm" color="secondary">
                   expenses
@@ -110,7 +90,7 @@ export default function FinanceScreen() {
               </Card>
               <Card className="flex-1 items-center">
                 <Text variant="lg" weight="bold">
-                  {formatCurrency(stats.monthNet)}
+                  {formatCurrency(stats.monthNet, currency)}
                 </Text>
                 <Text variant="sm" color="secondary">
                   net
@@ -119,33 +99,8 @@ export default function FinanceScreen() {
             </View>
 
             <Card className="gap-sm">
-              <Text weight="semibold">Monthly trend</Text>
-              <MonthlyTrendChart data={stats.monthlyTrend} />
-            </Card>
-
-            <Card className="gap-sm">
               <Text weight="semibold">Spending by category</Text>
               <CategoryPieChart categories={stats.categoryTotals} />
-            </Card>
-
-            <Card className="gap-md">
-              <View className="flex-row items-center justify-between">
-                <Text weight="semibold">Budget vs actual</Text>
-                <Button variant="ghost" size="sm" onPress={() => setBudgetFormVisible(true)}>
-                  + Add
-                </Button>
-              </View>
-              {stats.budgetProgress.length === 0 ? (
-                <Text variant="sm" color="secondary">
-                  No budgets set for this month yet.
-                </Text>
-              ) : (
-                <View className="gap-md">
-                  {stats.budgetProgress.map((progress) => (
-                    <BudgetProgressRow key={progress.budgetId} progress={progress} />
-                  ))}
-                </View>
-              )}
             </Card>
 
             <Text weight="semibold">Transactions</Text>
@@ -159,7 +114,9 @@ export default function FinanceScreen() {
             onAction={openCreateTransaction}
           />
         }
-        renderItem={({ item }) => <TransactionRow transaction={item} onPress={() => openEditTransaction(item)} />}
+        renderItem={({ item }) => (
+          <TransactionRow transaction={item} currency={currency} onPress={() => openEditTransaction(item)} />
+        )}
         ListFooterComponent={
           <Button variant="outline" onPress={openCreateTransaction} className="mt-sm">
             + Add transaction
@@ -185,14 +142,6 @@ export default function FinanceScreen() {
               }
             : undefined
         }
-      />
-
-      <BudgetFormSheet
-        visible={budgetFormVisible}
-        onClose={() => setBudgetFormVisible(false)}
-        onSubmit={async (category, limit) => {
-          await setBudget(category, limit);
-        }}
       />
     </View>
   );

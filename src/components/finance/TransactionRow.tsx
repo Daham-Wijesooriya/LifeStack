@@ -6,10 +6,11 @@ import { formatCurrency } from '@/lib/currency';
 
 export interface TransactionRowProps {
   transaction: Transaction;
+  currency: string;
   onPress: () => void;
 }
 
-export function TransactionRow({ transaction, onPress }: TransactionRowProps) {
+export function TransactionRow({ transaction, currency, onPress }: TransactionRowProps) {
   const isIncome = transaction.type === 'income';
 
   return (
@@ -26,7 +27,7 @@ export function TransactionRow({ transaction, onPress }: TransactionRowProps) {
       </View>
       <Text weight="semibold" color={isIncome ? 'success' : 'danger'}>
         {isIncome ? '+' : '-'}
-        {formatCurrency(transaction.amount)}
+        {formatCurrency(transaction.amount, currency)}
       </Text>
     </Pressable>
   );
