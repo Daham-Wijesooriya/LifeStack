@@ -4,7 +4,7 @@ Date: 2026-08-08
 
 ## Goal
 
-1. Simplify the Finance tab down to essentials: summary cards, one pie chart, transaction list. Remove the monthly trend chart and budget-vs-actual section, and the now-dead code behind them.
+1. Simplify the Finance tab down to essentials: **this month's income/expense/net summary cards** (kept), one pie chart, transaction list. Remove the **6-month trend chart** (a separate thing from the summary cards — don't confuse the two) and the budget-vs-actual section, and the now-dead code behind them. UI should read as minimal and clean, not just content-reduced — spacing and card styling for the kept sections are part of this pass, not an afterthought.
 2. Add a Settings screen reachable via a gear icon on the Dashboard's top-right corner, with two controls: theme (light/dark/system) and currency — both persisted so they survive an app restart.
 
 ## Non-goals
