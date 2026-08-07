@@ -1,6 +1,7 @@
 import { format, parseISO } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SleepBarChart, SleepLogFormSheet, SleepLogRow } from '@/components/sleep';
 import { Button, Card, EmptyState, Text } from '@/components/ui';
@@ -11,6 +12,7 @@ import { useSleepStore } from '@/store/sleepStore';
 type Range = 7 | 30;
 
 export default function SleepScreen() {
+  const insets = useSafeAreaInsets();
   const { logs, status, error, loadLogs, createLog, updateLog, deleteLog } = useSleepStore();
   const [range, setRange] = useState<Range>(7);
   const [formVisible, setFormVisible] = useState(false);
@@ -100,7 +102,10 @@ export default function SleepScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-lg pt-lg">
+    // No (tabs) screen gets a native header, so the safe-area top inset has
+    // to be handled here explicitly — see app/(tabs)/index.tsx for the same
+    // fix and why a flat pt-lg isn't enough on notched devices.
+    <View className="flex-1 bg-background px-lg" style={{ paddingTop: insets.top + 16 }}>
       <View className="flex-row gap-sm pb-md">
         <Button variant={range === 7 ? 'primary' : 'outline'} size="sm" onPress={() => setRange(7)}>
           7 days

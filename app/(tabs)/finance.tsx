@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryPieChart, TransactionFormSheet, TransactionRow } from '@/components/finance';
 import { Button, Card, EmptyState, Text } from '@/components/ui';
@@ -11,6 +12,7 @@ import { useFinanceStore } from '@/store/financeStore';
 import { useSettingsStore } from '@/store/settingsStore';
 
 export default function FinanceScreen() {
+  const insets = useSafeAreaInsets();
   const { currentMonth, transactions, status, error, loadMonth, createTransaction, updateTransaction, deleteTransaction } =
     useFinanceStore();
   const currency = useSettingsStore((state) => state.currency);
@@ -52,7 +54,10 @@ export default function FinanceScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-lg pt-lg">
+    // No (tabs) screen gets a native header, so the safe-area top inset has
+    // to be handled here explicitly — see app/(tabs)/index.tsx for the same
+    // fix and why a flat pt-lg isn't enough on notched devices.
+    <View className="flex-1 bg-background px-lg" style={{ paddingTop: insets.top + 16 }}>
       <View className="flex-row items-center justify-between pb-md">
         <Pressable onPress={() => void loadMonth(addMonthsISO(currentMonth, -1))} hitSlop={8}>
           <Text variant="lg">‹</Text>

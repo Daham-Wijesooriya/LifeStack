@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TodoFormSheet, TodoRow } from '@/components/todos';
 import { Button, EmptyState, Text } from '@/components/ui';
@@ -15,6 +16,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 export default function TodosScreen() {
+  const insets = useSafeAreaInsets();
   const { todos, status, error, loadTodos, createTodo, updateTodo, deleteTodo } = useTodosStore();
   const [filter, setFilter] = useState<Filter>('pending');
   const [formVisible, setFormVisible] = useState(false);
@@ -56,7 +58,10 @@ export default function TodosScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-lg pt-lg">
+    // No (tabs) screen gets a native header, so the safe-area top inset has
+    // to be handled here explicitly — see app/(tabs)/index.tsx for the same
+    // fix and why a flat pt-lg isn't enough on notched devices.
+    <View className="flex-1 bg-background px-lg" style={{ paddingTop: insets.top + 16 }}>
       <View className="flex-row gap-sm pb-md">
         {FILTERS.map((f) => (
           <Button
