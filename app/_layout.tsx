@@ -1,12 +1,13 @@
 import '../global.css';
 
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Platform, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useDatabaseMigrations } from '@/db/migrate';
+import { useSettingsStore } from '@/store/settingsStore';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 /**
@@ -34,6 +35,25 @@ function MigrationGate({ children }: { children: ReactNode }) {
 
 function NativeMigrationGate({ children }: { children: ReactNode }) {
   const { success, error } = useDatabaseMigrations();
+  const theme = useTheme();
+
+  // Settings can only be read once migrations have run (the `settings`
+  // table doesn't exist before that). This only needs to fire once, when
+  // `success` first flips true, so it intentionally doesn't depend on
+  // `theme.preference`/`theme.setPreference` — including them would just
+  // re-run this on every unrelated theme change.
+  useEffect(() => {
+    if (!success) return;
+    void useSettingsStore
+      .getState()
+      .load()
+      .then(() => {
+        const loadedPreference = useSettingsStore.getState().themePreference;
+        if (loadedPreference !== theme.preference) {
+          theme.setPreference(loadedPreference);
+        }
+      });
+  }, [success]);
 
   if (error) {
     return (
@@ -62,7 +82,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <MigrationGate>
-          <Slot />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="settings"
+              options={{ presentation: 'modal', headerShown: true, title: 'Settings' }}
+            />
+          </Stack>
         </MigrationGate>
         <ThemedStatusBar />
       </ThemeProvider>
