@@ -38,6 +38,16 @@ module.exports = {
         lg: '16px',
         xl: '24px',
       },
+      // Mirrors `typography` in src/theme/tokens.ts so `<Text variant="lg">`
+      // and any raw `className="text-lg"` usage stay pixel-identical.
+      fontSize: {
+        xs: ['12px', { lineHeight: '16px' }],
+        sm: ['14px', { lineHeight: '20px' }],
+        base: ['16px', { lineHeight: '22px' }],
+        lg: ['18px', { lineHeight: '24px' }],
+        xl: ['22px', { lineHeight: '28px' }],
+        '2xl': ['28px', { lineHeight: '34px' }],
+      },
     },
   },
   plugins: [],
