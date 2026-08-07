@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
@@ -21,21 +21,36 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable
-        className="flex-1 justify-end bg-black/40"
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Close"
-      >
-        {/* Absorbs taps so they don't fall through to the backdrop's onPress above. */}
+      {/*
+       * `Modal` mounts this subtree in its own native window, so a
+       * KeyboardAvoidingView anywhere outside it (e.g. in the root layout)
+       * would never see the keyboard events — it has to live in here.
+       */}
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Pressable
-          onPress={() => {}}
-          style={{ paddingBottom: insets.bottom + 16 }}
-          className={cn('rounded-t-xl border border-border bg-surface px-lg pt-lg', contentClassName)}
+          className="flex-1 justify-end bg-black/40"
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
         >
-          {children}
+          {/* Absorbs taps so they don't fall through to the backdrop's onPress above. */}
+          <Pressable
+            onPress={() => {}}
+            className={cn(
+              'max-h-[85%] overflow-hidden rounded-t-xl border border-border bg-surface',
+              contentClassName,
+            )}
+          >
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+              className="px-lg pt-lg"
+            >
+              {children}
+            </ScrollView>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

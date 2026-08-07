@@ -1,4 +1,4 @@
-import { addDays, differenceInMinutes, format, parseISO, startOfWeek } from 'date-fns';
+import { addDays, addMonths, differenceInMinutes, endOfMonth, format, parse, parseISO, startOfMonth, startOfWeek } from 'date-fns';
 
 /**
  * Local calendar day as YYYY-MM-DD. Never derive this from
@@ -183,4 +183,31 @@ export function computeSleepConsistency(bedtimes: readonly string[]): number {
 
   const score = 100 - (stdDevMinutes / 120) * 100;
   return Math.round(Math.max(0, Math.min(100, score)));
+}
+
+function parseMonthISO(monthISO: string): Date {
+  return parse(monthISO, 'yyyy-MM', new Date());
+}
+
+/** The current month as YYYY-MM. */
+export function currentMonthISO(): string {
+  return format(new Date(), 'yyyy-MM');
+}
+
+export function addMonthsISO(monthISO: string, months: number): string {
+  return format(addMonths(parseMonthISO(monthISO), months), 'yyyy-MM');
+}
+
+/** First day of `monthISO`, as YYYY-MM-DD — for scoping date-range repository queries to a whole month. */
+export function monthStartDateISO(monthISO: string): string {
+  return formatISODate(startOfMonth(parseMonthISO(monthISO)));
+}
+
+export function monthEndDateISO(monthISO: string): string {
+  return formatISODate(endOfMonth(parseMonthISO(monthISO)));
+}
+
+/** "2026-08" -> "Aug 2026" */
+export function formatMonthLabel(monthISO: string): string {
+  return format(parseMonthISO(monthISO), 'MMM yyyy');
 }
