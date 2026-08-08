@@ -90,14 +90,14 @@ export function SleepLogFormSheet({ visible, onClose, onSubmit, onDelete, initia
 
         <DateField label="Date (wake day)" value={date} onChange={(value) => setDate(value ?? todayISO())} clearable={false} />
 
-        <View className="flex-row gap-md">
-          <View className="flex-1">
-            <TimeField label="Bedtime" value={bedtime} onChange={setBedtime} />
-          </View>
-          <View className="flex-1">
-            <TimeField label="Wake time" value={wakeTime} onChange={setWakeTime} />
-          </View>
-        </View>
+        {/*
+         * Stacked full-width, not side by side — the iOS spinner picker that
+         * pops up under each field needs close to the full sheet width for
+         * its hour/minute wheels. Squeezed into a half column, it overflowed
+         * past the right edge (worse for Wake time, being the right column).
+         */}
+        <TimeField label="Bedtime" value={bedtime} onChange={setBedtime} />
+        <TimeField label="Wake time" value={wakeTime} onChange={setWakeTime} />
 
         <View className="gap-xs">
           <Text variant="sm" weight="medium" color="secondary">
