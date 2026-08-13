@@ -1,12 +1,11 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { formatISODate } from '@/lib/date';
+import { todayISO } from '@/lib/date';
 
+import { Button } from './Button';
+import { CalendarPicker } from './CalendarPicker';
+import { PickerModal } from './PickerModal';
 import { Text } from './Text';
 
 export interface DateFieldProps {
@@ -19,29 +18,31 @@ export interface DateFieldProps {
 }
 
 /**
- * Shared date picker for Todos (due date), and later Sleep (bedtime/wake)
- * and Finance (transaction date) — Android's picker is a native imperative
- * dialog while iOS renders inline, hence the platform branch.
+ * Shared date picker for Todos (due date), Sleep (bedtime/wake), and Finance
+ * (transaction date) — a custom calendar-grid modal matching the app's own
+ * look, not the OS native picker. Selection is staged locally and only
+ * committed via onChange when Done is pressed.
  */
 export function DateField({ label, value, onChange, placeholder = 'Select date', clearable = true }: DateFieldProps) {
-  const [iosPickerVisible, setIosPickerVisible] = useState(false);
-  // Local midnight, not UTC midnight: a bare "T00:00:00" (no zone suffix) is
-  // parsed as local time, which round-trips correctly through formatISODate.
-  const dateValue = value ? new Date(`${value}T00:00:00`) : new Date();
+  const [visible, setVisible] = useState(false);
+  const [monthISO, setMonthISO] = useState(() => (value ?? todayISO()).slice(0, 7));
+  const [stagedISO, setStagedISO] = useState<string | null>(value);
 
-  function handleChange(event: DateTimePickerEvent, selected?: Date) {
-    setIosPickerVisible(false);
-    if (event.type === 'set' && selected) {
-      onChange(formatISODate(selected));
-    }
+  function open() {
+    setStagedISO(value);
+    setMonthISO((value ?? todayISO()).slice(0, 7));
+    setVisible(true);
   }
 
-  function openPicker() {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({ value: dateValue, mode: 'date', onChange: handleChange });
-    } else {
-      setIosPickerVisible(true);
-    }
+  function commit() {
+    onChange(stagedISO);
+    setVisible(false);
+  }
+
+  function jumpToToday() {
+    const today = todayISO();
+    setMonthISO(today.slice(0, 7));
+    setStagedISO(today);
   }
 
   return (
@@ -52,7 +53,7 @@ export function DateField({ label, value, onChange, placeholder = 'Select date',
         </Text>
       ) : null}
       <Pressable
-        onPress={openPicker}
+        onPress={open}
         className="flex-row items-center justify-between rounded-md border border-border bg-surface px-md py-sm"
       >
         <Text color={value ? 'primary' : 'muted'}>{value ?? placeholder}</Text>
@@ -62,9 +63,20 @@ export function DateField({ label, value, onChange, placeholder = 'Select date',
           </Pressable>
         ) : null}
       </Pressable>
-      {Platform.OS === 'ios' && iosPickerVisible ? (
-        <DateTimePicker value={dateValue} mode="date" display="inline" onChange={handleChange} />
-      ) : null}
+      <PickerModal
+        visible={visible}
+        title={label ?? 'Select date'}
+        onCancel={() => setVisible(false)}
+        onDone={commit}
+        doneDisabled={stagedISO === null}
+        footerLeft={
+          <Button variant="ghost" size="sm" hitSlop={8} onPress={jumpToToday}>
+            Today
+          </Button>
+        }
+      >
+        <CalendarPicker monthISO={monthISO} onMonthChange={setMonthISO} selectedISO={stagedISO} onSelect={setStagedISO} />
+      </PickerModal>
     </View>
   );
 }

@@ -1,13 +1,9 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { formatTimeHHmm } from '@/lib/date';
-
+import { PickerModal } from './PickerModal';
 import { Text } from './Text';
+import { TimeWheelPicker } from './TimeWheelPicker';
 
 export interface TimeFieldProps {
   label?: string;
@@ -16,31 +12,23 @@ export interface TimeFieldProps {
   onChange: (value: string) => void;
 }
 
-function timeToDate(value: string): Date {
-  const [hoursRaw, minutesRaw] = value.split(':');
-  const date = new Date();
-  date.setHours(Number(hoursRaw ?? 0), Number(minutesRaw ?? 0), 0, 0);
-  return date;
-}
-
-/** Sibling to DateField, same Android-imperative / iOS-inline split, but for a bare time of day. */
+/**
+ * Sibling to DateField — same custom modal, staged-until-Done pattern, for a
+ * bare time of day. Replaces the native spinner (which used to overflow the
+ * sheet on small screens) with a custom wheel we fully control the layout of.
+ */
 export function TimeField({ label, value, onChange }: TimeFieldProps) {
-  const [iosPickerVisible, setIosPickerVisible] = useState(false);
-  const dateValue = timeToDate(value);
+  const [visible, setVisible] = useState(false);
+  const [staged, setStaged] = useState(value);
 
-  function handleChange(event: DateTimePickerEvent, selected?: Date) {
-    setIosPickerVisible(false);
-    if (event.type === 'set' && selected) {
-      onChange(formatTimeHHmm(selected));
-    }
+  function open() {
+    setStaged(value);
+    setVisible(true);
   }
 
-  function openPicker() {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({ value: dateValue, mode: 'time', onChange: handleChange });
-    } else {
-      setIosPickerVisible(true);
-    }
+  function commit() {
+    onChange(staged);
+    setVisible(false);
   }
 
   return (
@@ -50,12 +38,12 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
           {label}
         </Text>
       ) : null}
-      <Pressable onPress={openPicker} className="rounded-md border border-border bg-surface px-md py-sm">
+      <Pressable onPress={open} className="rounded-md border border-border bg-surface px-md py-sm">
         <Text>{value}</Text>
       </Pressable>
-      {Platform.OS === 'ios' && iosPickerVisible ? (
-        <DateTimePicker value={dateValue} mode="time" display="spinner" onChange={handleChange} />
-      ) : null}
+      <PickerModal visible={visible} title={label ?? 'Select time'} onCancel={() => setVisible(false)} onDone={commit}>
+        <TimeWheelPicker value={staged} onChange={setStaged} />
+      </PickerModal>
     </View>
   );
 }

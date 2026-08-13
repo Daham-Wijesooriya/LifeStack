@@ -11,13 +11,15 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.lifestack.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": true,
+      "edgeToEdge": true
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -26,8 +28,7 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
