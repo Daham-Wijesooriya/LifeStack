@@ -1,0 +1,4 @@
+- [ ] Update `package.json` dependencies to SDK 57
+- [ ] Configure `app.json` for Pixel 7 Pro (Edge-to-Edge & Package ID)
+- [ ] Refine `app/_layout.tsx` for optimal status bar behavior
+- [ ] Provide final instructions for running on Pixel 7 Pro simulator
