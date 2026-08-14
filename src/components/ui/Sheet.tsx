@@ -20,7 +20,7 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       {/*
        * `Modal` mounts this subtree in its own native window, so a
        * KeyboardAvoidingView anywhere outside it (e.g. in the root layout)

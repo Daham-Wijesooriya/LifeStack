@@ -74,7 +74,13 @@ function NativeMigrationGate({ children }: { children: ReactNode }) {
 
 function ThemedStatusBar() {
   const { colorScheme } = useTheme();
-  return <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />;
+  return (
+    <StatusBar
+      style={colorScheme === 'dark' ? 'light' : 'dark'}
+      translucent
+      backgroundColor="transparent"
+    />
+  );
 }
 
 export default function RootLayout() {
