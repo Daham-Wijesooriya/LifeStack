@@ -77,14 +77,14 @@ export default function HabitDetailScreen() {
             {stats.completionRate}%
           </Text>
           <Text variant="sm" color="secondary">
-            last 12 weeks
+            last 52 weeks
           </Text>
         </View>
       </View>
 
       <View className="gap-sm">
         <Text variant="sm" weight="medium" color="secondary">
-          Last 12 weeks
+          Last 52 weeks
         </Text>
         <HabitHeatmap days={stats.heatmapDays} color={habit.color} />
       </View>
