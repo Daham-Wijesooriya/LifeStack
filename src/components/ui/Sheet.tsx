@@ -20,13 +20,13 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       {/*
        * `Modal` mounts this subtree in its own native window, so a
        * KeyboardAvoidingView anywhere outside it (e.g. in the root layout)
        * would never see the keyboard events — it has to live in here.
        */}
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
         <Pressable
           className="flex-1 justify-end bg-black/40"
           onPress={onClose}
@@ -35,7 +35,7 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
         >
           {/* Absorbs taps so they don't fall through to the backdrop's onPress above. */}
           <Pressable
-            onPress={() => {}}
+            onPress={() => { }}
             className={cn(
               'max-h-[85%] overflow-hidden rounded-t-xl border border-border bg-surface',
               contentClassName,
