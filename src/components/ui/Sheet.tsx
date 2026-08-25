@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
@@ -33,9 +33,10 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
           accessibilityRole="button"
           accessibilityLabel="Close"
         >
-          {/* Absorbs taps so they don't fall through to the backdrop's onPress above. */}
-          <Pressable
-            onPress={() => { }}
+          {/* Plain View — stops taps from bubbling up to the backdrop Pressable
+               (so touching the sheet doesn't close it) but, unlike Pressable,
+               does NOT intercept scroll gestures from nested ScrollViews. */}
+          <View
             className={cn(
               'max-h-[85%] overflow-hidden rounded-t-xl border border-border bg-surface',
               contentClassName,
@@ -43,12 +44,13 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
           >
             <ScrollView
               keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
               contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
               className="px-lg pt-lg"
             >
               {children}
             </ScrollView>
-          </Pressable>
+          </View>
         </Pressable>
       </KeyboardAvoidingView>
     </Modal>

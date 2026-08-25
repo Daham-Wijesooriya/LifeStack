@@ -31,9 +31,10 @@ export function PickerModal({ visible, title, onCancel, onDone, doneDisabled, fo
         accessibilityRole="button"
         accessibilityLabel="Close"
       >
-        {/* Absorbs taps so they don't fall through to the backdrop's onPress above. */}
-        <Pressable
-          onPress={() => {}}
+        {/* Absorbs taps so they don't fall through to the backdrop's onPress above.
+             Using View instead of Pressable so it never steals scroll gestures from
+             the wheel picker columns inside (Pressable intercepts single-finger scrolls). */}
+        <View
           className="w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface"
         >
           <View className="gap-md p-lg">
@@ -53,7 +54,7 @@ export function PickerModal({ visible, title, onCancel, onDone, doneDisabled, fo
               </Button>
             </View>
           </View>
-        </Pressable>
+        </View>
       </Pressable>
     </Modal>
   );

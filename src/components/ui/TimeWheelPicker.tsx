@@ -44,7 +44,7 @@ function Column<T extends string | number>({ items, selected, onSelect, format }
   const scrollRef = useRef<ScrollView>(null);
   const selectedIndex = items.indexOf(selected);
 
-  function handleMomentumEnd(event: NativeSyntheticEvent<NativeScrollEvent>) {
+  function handleScrollSettle(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const index = Math.round(event.nativeEvent.contentOffset.y / ROW_HEIGHT);
     const clamped = Math.max(0, Math.min(items.length - 1, index));
     onSelect(items[clamped] ?? selected);
@@ -57,9 +57,19 @@ function Column<T extends string | number>({ items, selected, onSelect, format }
       showsVerticalScrollIndicator={false}
       snapToInterval={ROW_HEIGHT}
       decelerationRate="fast"
+      nestedScrollEnabled
+      scrollEnabled
       contentContainerStyle={{ paddingVertical: PADDING }}
       contentOffset={{ x: 0, y: selectedIndex * ROW_HEIGHT }}
-      onMomentumScrollEnd={handleMomentumEnd}
+      // A slow, deliberate drag (exactly how you'd dial in a precise time) can end
+      // with ~zero release velocity, in which case the scroll view snaps to the
+      // nearest row without ever entering a momentum phase — onMomentumScrollEnd
+      // then never fires and the drag silently fails to commit. onScrollEndDrag
+      // fires on every release, so wiring both keeps flicks (momentum) and slow
+      // drags (drag-end, no momentum) equally reliable; a flick fires both in
+      // sequence, but recomputing the same settled index twice is harmless.
+      onScrollEndDrag={handleScrollSettle}
+      onMomentumScrollEnd={handleScrollSettle}
     >
       {items.map((item) => (
         <View key={String(item)} style={{ height: ROW_HEIGHT }} className="items-center justify-center">
