@@ -67,6 +67,12 @@ export const todos = sqliteTable(
     title: text('title').notNull(),
     notes: text('notes'),
     dueDate: text('due_date'),
+    // Time-boxing block, both nullable — a todo is only placed on the day
+    // timeline once it has both. "HH:mm", 24-hour, same convention as
+    // TimeField/TimeWheelPicker. Never set without dueDate (enforced by the
+    // form, not the DB) — a time with no day to anchor it to is meaningless.
+    startTime: text('start_time'),
+    endTime: text('end_time'),
     priority: text('priority').notNull().$type<'low' | 'medium' | 'high'>(),
     tag: text('tag'),
     completed: integer('completed', { mode: 'boolean' }).notNull().default(false),

@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, Text as RNText, type PressableProps } fro
 import { cn } from '@/lib/cn';
 import { useTheme } from '@/theme/ThemeProvider';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dangerOutline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'children'> {
@@ -22,6 +22,7 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
   outline: 'border border-border bg-transparent active:opacity-70',
   ghost: 'bg-transparent active:opacity-60',
   danger: 'bg-danger active:opacity-80',
+  dangerOutline: 'border border-danger bg-transparent active:opacity-70',
 };
 
 // Not every variant's label uses a Text color token (danger's background is
@@ -33,6 +34,7 @@ const VARIANT_TEXT_STYLES: Record<ButtonVariant, string> = {
   outline: 'text-text-primary',
   ghost: 'text-primary',
   danger: 'text-white',
+  dangerOutline: 'text-danger',
 };
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
@@ -70,7 +72,9 @@ export const Button = forwardRef<ComponentRef<typeof Pressable>, ButtonProps>(fu
         ? '#FFFFFF'
         : variant === 'ghost'
           ? colors.primary
-          : colors.textPrimary;
+          : variant === 'dangerOutline'
+            ? colors.danger
+            : colors.textPrimary;
 
   return (
     <Pressable

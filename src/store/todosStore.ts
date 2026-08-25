@@ -11,6 +11,9 @@ export interface NewTodoInput {
   title: string;
   notes: string | null;
   dueDate: string | null;
+  /** "HH:mm", or null for an untimed todo. Only meaningful alongside dueDate. */
+  startTime: string | null;
+  endTime: string | null;
   priority: 'low' | 'medium' | 'high';
   tag: string | null;
 }

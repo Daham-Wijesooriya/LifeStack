@@ -211,3 +211,47 @@ export function monthEndDateISO(monthISO: string): string {
 export function formatMonthLabel(monthISO: string): string {
   return format(parseMonthISO(monthISO), 'MMM yyyy');
 }
+
+// --- Time-boxing helpers (Todos day-timeline) -------------------------------
+// These all operate on bare "HH:mm" (24-hour) strings, same convention as
+// TimeField/TimeWheelPicker — never a full ISO instant, since a time block
+// only makes sense paired with the todo's own `dueDate` column.
+
+/** "HH:mm" -> minutes since midnight, e.g. "09:30" -> 570. */
+export function hhmmToMinutes(hhmm: string): number {
+  const [hoursRaw, minutesRaw] = hhmm.split(':');
+  return Number(hoursRaw ?? 0) * 60 + Number(minutesRaw ?? 0);
+}
+
+/** Minutes since midnight -> "HH:mm", clamped to a single day (0-1439). */
+export function minutesToHHmm(totalMinutes: number): string {
+  const clamped = Math.max(0, Math.min(24 * 60 - 1, Math.round(totalMinutes)));
+  const hours = Math.floor(clamped / 60);
+  const minutes = clamped % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+/** Adds `minutes` to a "HH:mm" time, clamped within the same day (blocks never wrap past midnight). */
+export function addMinutesHHmm(hhmm: string, minutes: number): string {
+  return minutesToHHmm(hhmmToMinutes(hhmm) + minutes);
+}
+
+/** "HH:mm" (24h) -> "9:30 AM" for display. */
+export function formatHHmmLabel(hhmm: string): string {
+  const [hoursRaw, minutesRaw] = hhmm.split(':');
+  const hour24 = Number(hoursRaw ?? 0);
+  const minute = Number(minutesRaw ?? 0);
+  const period = hour24 >= 12 ? 'PM' : 'AM';
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${hour12}:${String(minute).padStart(2, '0')} ${period}`;
+}
+
+/** Current local wall-clock time as "HH:mm" — for defaulting a new time block and the timeline's now-line. */
+export function nowHHmm(): string {
+  return formatTimeHHmm(new Date());
+}
+
+/** `dateISO` shifted so it sits `offset` days from `today` and `today` lands at index `centerIndex` — the day-strip window. */
+export function dayStripISO(centerDateISO: string, before: number, after: number): string[] {
+  return Array.from({ length: before + after + 1 }, (_, i) => addDaysISO(centerDateISO, i - before));
+}
