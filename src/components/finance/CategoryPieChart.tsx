@@ -3,13 +3,8 @@ import { PieChart } from 'react-native-gifted-charts';
 
 import { Text } from '@/components/ui';
 import type { CategoryTotal } from '@/hooks/useFinanceStats';
+import { useAccentPalette } from '@/theme/accentPalette';
 import { useTheme } from '@/theme/ThemeProvider';
-
-const PALETTE = ['#5B5BD6', '#1E9E6A', '#D0403A', '#B8860B', '#2E7BC4', '#C2469B', '#4B4B57', '#8A8A94'] as const;
-
-function paletteColor(index: number): string {
-  return PALETTE[index % PALETTE.length] ?? PALETTE[0];
-}
 
 export interface CategoryPieChartProps {
   categories: CategoryTotal[];
@@ -17,6 +12,11 @@ export interface CategoryPieChartProps {
 
 export function CategoryPieChart({ categories }: CategoryPieChartProps) {
   const { colors } = useTheme();
+  // Themed accent palette, extended with the neutral text tones so a
+  // category list longer than the accent set still has distinct slices.
+  const accentPalette = useAccentPalette();
+  const palette = [...accentPalette, colors.textSecondary, colors.textMuted];
+  const paletteColor = (index: number): string => palette[index % palette.length] ?? accentPalette[0];
 
   if (categories.length === 0) {
     return (

@@ -4,6 +4,7 @@ import { ScrollView, View } from 'react-native';
 import { Text } from '@/components/ui';
 import type { HabitHeatmapDay } from '@/hooks/useHabitStats';
 import { todayISO } from '@/lib/date';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export interface HabitHeatmapProps {
   days: HabitHeatmapDay[];
@@ -24,6 +25,7 @@ function chunk<T>(items: T[], size: number): T[][] {
  * Features Month labels at the top and Day labels on the left.
  */
 export function HabitHeatmap({ days, color }: HabitHeatmapProps) {
+  const { colors } = useTheme();
   const weeks = chunk(days, 7);
   const scrollViewRef = useRef<ScrollView>(null);
   const today = todayISO();
@@ -109,12 +111,13 @@ export function HabitHeatmap({ days, color }: HabitHeatmapProps) {
                       key={day.date}
                       className="h-[11px] w-[11px] rounded-[2px]"
                       style={[
-                        // base background
-                        { borderWidth: 1, borderColor: 'rgba(125,125,125,0.3)', backgroundColor: 'rgba(125,125,125,0.1)' },
+                        // base background — themed empty-cell fill/border
+                        { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceAlt },
                         // completed fill
                         day.completed ? { backgroundColor: color, borderColor: color } : {},
-                        // today outline — always visible on top of everything
-                        isToday ? { borderWidth: 2, borderColor: '#FFFFFF' } : {},
+                        // today outline — themed so it stays visible against both
+                        // light and dark surfaces, always on top of everything
+                        isToday ? { borderWidth: 2, borderColor: colors.textPrimary } : {},
                       ]}
                     />
                   );

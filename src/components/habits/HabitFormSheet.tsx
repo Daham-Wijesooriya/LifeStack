@@ -5,8 +5,7 @@ import { Button, Input, Sheet, Text } from '@/components/ui';
 import type { Habit } from '@/db/schema';
 import { cn } from '@/lib/cn';
 import type { NewHabitInput } from '@/store/habitsStore';
-
-const COLOR_PRESETS = ['#5B5BD6', '#1E9E6A', '#D0403A', '#B8860B', '#2E7BC4', '#C2469B'] as const;
+import { useAccentPalette } from '@/theme/accentPalette';
 
 export interface HabitFormSheetProps {
   visible: boolean;
@@ -17,9 +16,10 @@ export interface HabitFormSheetProps {
 }
 
 export function HabitFormSheet({ visible, onClose, onSubmit, initialHabit }: HabitFormSheetProps) {
+  const colorPresets = useAccentPalette();
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('✅');
-  const [color, setColor] = useState<string>(COLOR_PRESETS[0]);
+  const [color, setColor] = useState<string>(colorPresets[0]);
   const [frequencyType, setFrequencyType] = useState<'daily' | 'weekly'>('daily');
   const [targetPerWeek, setTargetPerWeek] = useState('3');
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +31,7 @@ export function HabitFormSheet({ visible, onClose, onSubmit, initialHabit }: Hab
     if (!visible) return;
     setName(initialHabit?.name ?? '');
     setIcon(initialHabit?.icon ?? '✅');
-    setColor(initialHabit?.color ?? COLOR_PRESETS[0]);
+    setColor(initialHabit?.color ?? colorPresets[0]);
     setFrequencyType(initialHabit?.frequencyType ?? 'daily');
     setTargetPerWeek(String(initialHabit?.targetPerWeek ?? 3));
     setError(null);
@@ -75,7 +75,7 @@ export function HabitFormSheet({ visible, onClose, onSubmit, initialHabit }: Hab
             Color
           </Text>
           <View className="flex-row gap-sm">
-            {COLOR_PRESETS.map((preset) => (
+            {colorPresets.map((preset) => (
               <Pressable
                 key={preset}
                 onPress={() => setColor(preset)}
