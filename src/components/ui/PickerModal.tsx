@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from './Button';
 import { Text } from './Text';
@@ -25,18 +25,22 @@ export interface PickerModalProps {
 export function PickerModal({ visible, title, onCancel, onDone, doneDisabled, footerLeft, children }: PickerModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
-      <Pressable
-        className="flex-1 items-center justify-center bg-black/40 px-lg"
-        onPress={onCancel}
-        accessibilityRole="button"
-        accessibilityLabel="Close"
-      >
-        {/* Absorbs taps so they don't fall through to the backdrop's onPress above.
-             Using View instead of Pressable so it never steals scroll gestures from
-             the wheel picker columns inside (Pressable intercepts single-finger scrolls). */}
-        <View
-          className="w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface"
-        >
+      <View className="flex-1 items-center justify-center bg-black/40 px-lg">
+        {/*
+         * Full-screen backdrop as a sibling BEHIND the card, not a Pressable
+         * wrapping it. A Pressable ancestor can win the touch-responder race
+         * against a descendant ScrollView on Android and swallow its drag
+         * gestures entirely (this is what was breaking the wheel picker's
+         * scroll, even with a plain View absorber in between) — as a sibling
+         * it only ever sees taps that land outside the card.
+         */}
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onCancel}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        />
+        <View className="w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface">
           <View className="gap-md p-lg">
             <Text variant="lg" weight="semibold">
               {title}
@@ -55,7 +59,7 @@ export function PickerModal({ visible, title, onCancel, onDone, doneDisabled, fo
             </View>
           </View>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }

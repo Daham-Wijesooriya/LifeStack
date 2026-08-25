@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
@@ -27,15 +27,21 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
        * would never see the keyboard events — it has to live in here.
        */}
       <KeyboardAvoidingView className="flex-1" behavior="padding">
-        <Pressable
-          className="flex-1 justify-end bg-black/40"
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close"
-        >
-          {/* Plain View — stops taps from bubbling up to the backdrop Pressable
-               (so touching the sheet doesn't close it) but, unlike Pressable,
-               does NOT intercept scroll gestures from nested ScrollViews. */}
+        <View className="flex-1 justify-end bg-black/40">
+          {/*
+           * Full-screen backdrop as a sibling BEHIND the card, not a
+           * Pressable wrapping it (same fix as PickerModal). A Pressable
+           * ancestor can win the touch-responder race against a descendant
+           * ScrollView on Android and swallow its drag gestures entirely —
+           * here that's the sheet's own content ScrollView. As a sibling
+           * the backdrop only ever sees taps outside the card.
+           */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          />
           <View
             className={cn(
               'max-h-[85%] overflow-hidden rounded-t-xl border border-border bg-surface',
@@ -51,7 +57,7 @@ export function Sheet({ visible, onClose, children, contentClassName }: SheetPro
               {children}
             </ScrollView>
           </View>
-        </Pressable>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
