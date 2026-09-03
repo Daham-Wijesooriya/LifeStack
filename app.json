@@ -5,7 +5,7 @@
     "scheme": "lifestack",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/lifestack_icon_1024.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
@@ -13,16 +13,16 @@
     "android": {
       "package": "com.lifestack.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FFD082",
+        "foregroundImage": "./assets/lifestack_foreground_1024.png",
+        "backgroundImage": "./assets/lifestack_background_1024.png",
+        "monochromeImage": "./assets/lifestack_monochrome_1024.png"
       },
       "predictiveBackGestureEnabled": true,
       "edgeToEdge": true
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/lifestack_icon_1024.png",
       "bundler": "metro"
     },
     "plugins": [
