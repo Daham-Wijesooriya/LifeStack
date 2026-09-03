@@ -76,22 +76,49 @@ export default function DashboardScreen() {
     [todosState.todos, today],
   );
 
-  const activityDays = useMemo(() => {
-    const days = lastNDaysISO(7);
-    return days.map((date) => {
-      const completedCount = habitsState.habits.filter((habit) =>
-        (habitsState.logsByHabitId[habit.id] ?? []).some((log) => log.date === date && log.completed),
-      ).length;
-      return {
-        date,
-        label: format(parseISO(date), 'EEEEE'),
-        ratio: habitsState.habits.length > 0 ? completedCount / habitsState.habits.length : 0,
-      };
-    });
-  }, [habitsState.habits, habitsState.logsByHabitId]);
+  const last7DaysISO = useMemo(() => lastNDaysISO(7), []);
 
-  const weeklyAvgPct =
+  // Overall per-day progress, not just habits — same "average of whatever
+  // has data that day" approach as the hero DayScoreCard above, just run
+  // once per day instead of only for today.
+  const activityDays = useMemo(() => {
+    return last7DaysISO.map((date) => {
+      const habitRatio =
+        habitsState.habits.length > 0
+          ? habitsState.habits.filter((habit) =>
+              (habitsState.logsByHabitId[habit.id] ?? []).some((log) => log.date === date && log.completed),
+            ).length / habitsState.habits.length
+          : null;
+
+      const todosDue = todosState.todos.filter((todo) => todo.dueDate === date);
+      const todoRatio = todosDue.length > 0 ? todosDue.filter((todo) => todo.completed).length / todosDue.length : null;
+
+      const sleepLog = sleepState.logs.find((log) => log.date === date);
+      const sleepRatio = sleepLog ? sleepLog.quality / 5 : null;
+
+      const parts = [habitRatio, todoRatio, sleepRatio].filter((ratio): ratio is number => ratio !== null);
+      const ratio = parts.length > 0 ? parts.reduce((sum, r) => sum + r, 0) / parts.length : 0;
+
+      return { date, label: format(parseISO(date), 'EEEEE'), ratio };
+    });
+  }, [last7DaysISO, habitsState.habits, habitsState.logsByHabitId, todosState.todos, sleepState.logs]);
+
+  const overallWeeklyAvgPct =
     activityDays.length > 0 ? Math.round((activityDays.reduce((sum, d) => sum + d.ratio, 0) / activityDays.length) * 100) : 0;
+
+  // Habits-only weekly rate, for the Habits stat card's own sublabel — kept
+  // separate from the overall figure above since that one now blends in
+  // todos/sleep too.
+  const habitsWeeklyAvgPct = useMemo(() => {
+    if (habitsState.habits.length === 0) return 0;
+    const ratios = last7DaysISO.map(
+      (date) =>
+        habitsState.habits.filter((habit) =>
+          (habitsState.logsByHabitId[habit.id] ?? []).some((log) => log.date === date && log.completed),
+        ).length / habitsState.habits.length,
+    );
+    return Math.round((ratios.reduce((sum, r) => sum + r, 0) / ratios.length) * 100);
+  }, [last7DaysISO, habitsState.habits, habitsState.logsByHabitId]);
 
   const isLoading =
     habitsState.status === 'idle' ||
@@ -108,8 +135,12 @@ export default function DashboardScreen() {
     setActiveForm(kind);
   }
 
-  function goToTimeBoxing() {
+  function goToDayPlanner() {
     router.push('/todos');
+  }
+
+  function goToHabits() {
+    router.push('/habits');
   }
 
   return (
@@ -174,6 +205,19 @@ export default function DashboardScreen() {
             ]}
           />
 
+          <Card className="gap-sm">
+            <View className="flex-row items-center justify-between">
+              <Text weight="semibold">Last 7 days</Text>
+              <Text variant="xs" color="secondary">
+                {overallWeeklyAvgPct}% avg
+              </Text>
+            </View>
+            <Text variant="xs" color="muted">
+              Habits, todos & sleep combined
+            </Text>
+            <ActivityStrip days={activityDays} onPressDay={goToHabits} />
+          </Card>
+
           <View className="flex-row gap-md">
             <StatCard
               value={todaysSleep ? formatDurationMinutes(todaysSleep.durationMinutes) : '—'}
@@ -185,7 +229,7 @@ export default function DashboardScreen() {
               value={`${habitsDoneToday}/${habitsState.habits.length}`}
               label="Habits"
               icon={<Ionicons name="flame-outline" size={16} color={colors.warning} />}
-              sublabel={habitsState.habits.length > 0 ? `${weeklyAvgPct}% this week` : 'None yet'}
+              sublabel={habitsState.habits.length > 0 ? `${habitsWeeklyAvgPct}% this week` : 'None yet'}
             />
           </View>
           <View className="flex-row gap-md">
@@ -205,17 +249,7 @@ export default function DashboardScreen() {
             />
           </View>
 
-          <UpcomingTimeline todos={todaysTimeline} onPressTodo={goToTimeBoxing} onViewAll={goToTimeBoxing} />
-
-          <Card className="gap-sm">
-            <View className="flex-row items-center justify-between">
-              <Text weight="semibold">Last 7 days</Text>
-              <Text variant="xs" color="secondary">
-                {weeklyAvgPct}% avg
-              </Text>
-            </View>
-            <ActivityStrip days={activityDays} />
-          </Card>
+          <UpcomingTimeline todos={todaysTimeline} onPressTodo={goToDayPlanner} onViewAll={goToDayPlanner} />
         </ScrollView>
       )}
 

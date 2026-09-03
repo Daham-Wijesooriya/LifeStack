@@ -14,3 +14,14 @@ export function useAccentPalette(): readonly [string, string, string, string, st
   const { colors } = useTheme();
   return [colors.primary, colors.success, colors.danger, colors.warning, colors.info, '#C2469B'];
 }
+
+/**
+ * Deterministically maps a numeric id (a todo, a habit, ...) onto one color
+ * in a palette — the same id always lands on the same color, so a task can
+ * be tied together visually across different views (e.g. DayClock's wedges
+ * and the checklist rows under it) without passing color state around.
+ */
+export function pickAccentColor(id: number, palette: readonly string[]): string {
+  const index = ((id % palette.length) + palette.length) % palette.length;
+  return palette[index] as string;
+}

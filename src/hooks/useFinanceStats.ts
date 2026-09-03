@@ -10,6 +10,9 @@ export interface CategoryTotal {
 export interface FinanceStats {
   monthIncome: number;
   monthExpense: number;
+  /** This month's own income − expense, not counting anything carried over. */
+  monthOwnNet: number;
+  /** Running balance: last month's net (which itself carries the month before it, and so on) plus this month's own net. */
   monthNet: number;
   categoryTotals: CategoryTotal[];
 }
@@ -17,14 +20,16 @@ export interface FinanceStats {
 /**
  * All derived from already-loaded store data (see financeStore's loadMonth,
  * which now fetches only the target month — no cross-month filtering needed
- * here anymore).
+ * here anymore) plus `carryIn`, the running balance rolled forward from
+ * every prior month.
  */
-export function useFinanceStats(transactions: Transaction[]): FinanceStats {
+export function useFinanceStats(transactions: Transaction[], carryIn: number = 0): FinanceStats {
   return useMemo(() => {
     const expenseTx = transactions.filter((t) => t.type === 'expense');
 
     const monthIncome = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const monthExpense = expenseTx.reduce((sum, t) => sum + t.amount, 0);
+    const monthOwnNet = monthIncome - monthExpense;
 
     const categoryMap = new Map<string, number>();
     for (const t of expenseTx) {
@@ -37,8 +42,9 @@ export function useFinanceStats(transactions: Transaction[]): FinanceStats {
     return {
       monthIncome,
       monthExpense,
-      monthNet: monthIncome - monthExpense,
+      monthOwnNet,
+      monthNet: carryIn + monthOwnNet,
       categoryTotals,
     };
-  }, [transactions]);
+  }, [transactions, carryIn]);
 }

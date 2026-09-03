@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, lte, sum } from 'drizzle-orm';
 
 import type { Database } from '../client';
 import { type NewTransaction, type Transaction, transactions } from '../schema';
@@ -13,6 +13,8 @@ export interface TransactionsRepository extends CrudRepository<Transaction, NewT
     endDate: string,
     type?: Transaction['type'],
   ): Promise<number>;
+  /** Sum of amounts strictly before `date`, optionally narrowed to income or expense — used to carry a running balance from prior months into the current one. */
+  getTotalBefore(date: string, type?: Transaction['type']): Promise<number>;
 }
 
 export function createTransactionsRepository(db: Database): TransactionsRepository {
@@ -44,6 +46,14 @@ export function createTransactionsRepository(db: Database): TransactionsReposito
             type ? eq(transactions.type, type) : undefined,
           ),
         );
+      return Number(row?.total ?? 0);
+    },
+
+    async getTotalBefore(date, type) {
+      const [row] = await db
+        .select({ total: sum(transactions.amount) })
+        .from(transactions)
+        .where(and(lt(transactions.date, date), type ? eq(transactions.type, type) : undefined));
       return Number(row?.total ?? 0);
     },
 

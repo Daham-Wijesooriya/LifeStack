@@ -18,6 +18,8 @@ export interface NewTransactionInput {
 interface FinanceState {
   currentMonth: string;
   transactions: Transaction[];
+  /** Net (income − expense) of every transaction before this month — last month's leftover carries into this one, and so on back to the first transaction. */
+  carryIn: number;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   loadMonth: (month?: string) => Promise<void>;
@@ -29,6 +31,7 @@ interface FinanceState {
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   currentMonth: currentMonthISO(),
   transactions: [],
+  carryIn: 0,
   status: 'idle',
   error: null,
 
@@ -36,11 +39,13 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     const targetMonth = month ?? get().currentMonth;
     set({ status: 'loading', error: null, currentMonth: targetMonth });
     try {
-      const transactions = await transactionsRepo.getInRange(
-        monthStartDateISO(targetMonth),
-        monthEndDateISO(targetMonth),
-      );
-      set({ transactions, status: 'ready' });
+      const monthStart = monthStartDateISO(targetMonth);
+      const [transactions, incomeBefore, expenseBefore] = await Promise.all([
+        transactionsRepo.getInRange(monthStart, monthEndDateISO(targetMonth)),
+        transactionsRepo.getTotalBefore(monthStart, 'income'),
+        transactionsRepo.getTotalBefore(monthStart, 'expense'),
+      ]);
+      set({ transactions, carryIn: incomeBefore - expenseBefore, status: 'ready' });
     } catch (error) {
       set({ status: 'error', error: error instanceof Error ? error.message : String(error) });
     }

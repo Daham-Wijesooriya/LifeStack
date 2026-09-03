@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Card, Text } from '@/components/ui';
 import type { Todo } from '@/db/schema';
 import { formatHHmmLabel } from '@/lib/date';
+import { pickAccentColor, useAccentPalette } from '@/theme/accentPalette';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export interface UpcomingTimelineProps {
@@ -13,15 +14,10 @@ export interface UpcomingTimelineProps {
   onViewAll: () => void;
 }
 
-const PRIORITY_COLOR_KEY: Record<Todo['priority'], 'info' | 'warning' | 'danger'> = {
-  low: 'info',
-  medium: 'warning',
-  high: 'danger',
-};
-
 /** Dashboard preview of today's day-timeline — the full planner lives on the Todos tab. */
 export function UpcomingTimeline({ todos, onPressTodo, onViewAll }: UpcomingTimelineProps) {
   const { colors } = useTheme();
+  const accentPalette = useAccentPalette();
   const preview = todos.slice(0, 3);
 
   return (
@@ -43,7 +39,7 @@ export function UpcomingTimeline({ todos, onPressTodo, onViewAll }: UpcomingTime
       ) : (
         <View className="gap-sm">
           {preview.map((todo) => {
-            const color = colors[PRIORITY_COLOR_KEY[todo.priority]];
+            const color = pickAccentColor(todo.id, accentPalette);
             return (
               <Pressable
                 key={todo.id}

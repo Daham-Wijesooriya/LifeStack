@@ -2,16 +2,46 @@
 
 A personal life-tracking app built with Expo (React Native) — habits, to-dos, sleep, and budgeting in one place, backed by on-device SQLite.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="240">
+      <img src="image/Dashboard.jpeg" width="220" alt="Dashboard screen" /><br />
+      <sub>Dashboard</sub>
+    </td>
+    <td align="center" width="240">
+      <img src="image/Habit.jpeg" width="220" alt="Habits screen" /><br />
+      <sub>Habits</sub>
+    </td>
+    <td align="center" width="240">
+      <img src="image/todo.jpeg" width="220" alt="Day Planner screen" /><br />
+      <sub>Day Planner</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="240">
+      <img src="image/sleep.jpeg" width="220" alt="Sleep screen" /><br />
+      <sub>Sleep</sub>
+    </td>
+    <td align="center" width="240">
+      <img src="image/finance.jpeg" width="220" alt="Finance screen" /><br />
+      <sub>Finance</sub>
+    </td>
+    <td></td>
+  </tr>
+</table>
+
 ## Tech stack
 
-- **Expo SDK 54** + **Expo Router** (file-based routing)
-- **React Native 0.81** / **React 19**
+- **Expo SDK 57** + **Expo Router** (file-based routing)
+- **React Native 0.86** / **React 19**
 - **expo-sqlite** + **Drizzle ORM** (schema, migrations, typed repositories)
 - **NativeWind** (Tailwind CSS for React Native) for styling and theming
 - **Zustand** for client state
 - **TypeScript** (strict mode)
 
-> This project tracks Expo SDK 54 closely — check the [versioned Expo docs](https://docs.expo.dev/versions/v54.0.0/) before assuming API behavior.
+> This project tracks Expo SDK 57 closely — check the [versioned Expo docs](https://docs.expo.dev/versions/v57.0.0/) before assuming API behavior.
 
 ## Getting started
 
@@ -27,20 +57,31 @@ npm run ios       # run on iOS simulator/device
 ## Project structure
 
 ```
-app/                  # Expo Router screens (file-based routing)
-  _layout.tsx          # Root layout: theme provider, migration gate, status bar
-  index.tsx             # Entry screen
+app/                       # Expo Router screens (file-based routing)
+  _layout.tsx                # Root layout: theme provider, migration gate, status bar
+  settings.tsx                # Modal settings screen (theme + currency)
+  (tabs)/
+    _layout.tsx                # Bottom tab bar (Dashboard, Habits, Day Planner, Sleep, Finance)
+    index.tsx                   # Dashboard — hero day score, 7-day overview, quick add
+    habits/                     # Habits list + detail (streaks, heatmap)
+    todos.tsx                    # Day Planner — 24-hour donut clock + checklist
+    sleep.tsx                     # Sleep logs, bar chart, consistency
+    finance.tsx                    # Monthly transactions, category breakdown
 
 src/
+  components/             # One folder per domain (dashboard/finance/habits/sleep/todos), plus a shared ui/
   db/
-    schema.ts           # Drizzle table definitions (source of truth for the DB shape)
-    client.ts            # SQLite client setup
-    migrate.ts            # useDatabaseMigrations() hook, runs pending migrations on launch
-    drizzle/               # Generated SQL migrations + snapshots (drizzle-kit)
-    repositories/           # Typed data-access layer, one module per domain
+    schema.ts               # Drizzle table definitions (source of truth for the DB shape)
+    client.ts                 # SQLite client setup
+    migrate.ts                  # useDatabaseMigrations() hook, runs pending migrations on launch
+    drizzle/                      # Generated SQL migrations + snapshots (drizzle-kit)
+    repositories/                   # Typed data-access layer, one module per domain
+  hooks/                   # Derived-stats hooks (useHabitStats, useFinanceStats, ...)
+  store/                   # One Zustand store per domain (habitsStore, todosStore, ...)
   theme/
-    tokens.ts            # Design tokens (colors, spacing, etc.)
-    ThemeProvider.tsx      # Light/dark theme context
+    tokens.ts               # Design tokens (colors, spacing, etc.)
+    accentPalette.ts           # Shared theme-aware color palette (habit colors, per-task colors, ...)
+    ThemeProvider.tsx            # Light/dark theme context
 
 drizzle.config.ts      # drizzle-kit config (schema path, migrations output)
 tailwind.config.js     # NativeWind/Tailwind config
@@ -77,4 +118,12 @@ Migrations run automatically on app launch via `useDatabaseMigrations()` in `src
 
 ## Status
 
-Early scaffolding stage: DB schema, repositories, theming, and root layout are in place behind a temporary smoke-test screen (`app/index.tsx`) that verifies migrations and repository access. The tab structure and dashboard UI are not built yet.
+All five tabs are built and wired to on-device SQLite:
+
+- **Dashboard** — a hero "day score" blending habits/todos/sleep, a 7-day overall-progress strip, quick stats, and a themed quick-add sheet.
+- **Habits** — streaks, a GitHub-style completion heatmap, and a themed accent-color picker (light/dark aware).
+- **Day Planner** (Todos) — a 24-hour donut-chart clock (color-coded per task, overlapping tasks split into concentric lanes) with a day-by-day checklist underneath.
+- **Sleep** — bedtime/wake logging with a responsive bar chart (7/30-day ranges) and a consistency score.
+- **Finance** — monthly income/expense/net (carrying a running balance forward from prior months) with a category breakdown.
+
+Settings (theme preference, currency) is a modal screen reachable from the Dashboard's gear icon.

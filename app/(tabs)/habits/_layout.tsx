@@ -14,7 +14,8 @@ export default function HabitsStackLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Habits' }} />
+      {/* The list screen builds its own in-content title/subtitle header, so the native bar here would just duplicate it. */}
+      <Stack.Screen name="index" options={{ title: 'Habits', headerShown: false }} />
       <Stack.Screen name="[id]" options={{ title: 'Habit' }} />
     </Stack>
   );

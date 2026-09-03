@@ -1,18 +1,22 @@
+import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StatCard } from '@/components/dashboard';
 import { SleepBarChart, SleepLogFormSheet, SleepLogRow } from '@/components/sleep';
 import { Button, Card, EmptyState, Text } from '@/components/ui';
 import type { SleepLog } from '@/db/schema';
 import { computeSleepConsistency, formatDurationMinutes, lastNDaysISO } from '@/lib/date';
 import { useSleepStore } from '@/store/sleepStore';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type Range = 7 | 30;
 
 export default function SleepScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { logs, status, error, loadLogs, createLog, updateLog, deleteLog } = useSleepStore();
   const [range, setRange] = useState<Range>(7);
   const [formVisible, setFormVisible] = useState(false);
@@ -81,31 +85,20 @@ export default function SleepScreen() {
     );
   }
 
-  if (logs.length === 0) {
-    return (
-      <View className="flex-1 bg-background">
-        <EmptyState
-          title="No sleep logs yet"
-          description="Log tonight's bedtime and wake time to start tracking."
-          actionLabel="Add sleep log"
-          onAction={openCreate}
-        />
-        <SleepLogFormSheet
-          visible={formVisible}
-          onClose={() => setFormVisible(false)}
-          onSubmit={async (input) => {
-            await createLog(input);
-          }}
-        />
-      </View>
-    );
-  }
-
   return (
     // No (tabs) screen gets a native header, so the safe-area top inset has
     // to be handled here explicitly — see app/(tabs)/index.tsx for the same
     // fix and why a flat pt-lg isn't enough on notched devices.
     <View className="flex-1 bg-background px-lg" style={{ paddingTop: insets.top + 16 }}>
+      <View className="pb-sm">
+        <Text variant="xl" weight="semibold">
+          Sleep
+        </Text>
+        <Text variant="sm" color="secondary">
+          {logs.length > 0 ? `${logsInRange.length} logs in the last ${range} days` : 'Track your rest'}
+        </Text>
+      </View>
+
       <View className="flex-row gap-sm pb-md">
         <Button variant={range === 7 ? 'primary' : 'outline'} size="sm" onPress={() => setRange(7)}>
           7 days
@@ -118,39 +111,58 @@ export default function SleepScreen() {
       <FlatList
         data={logsInRange}
         keyExtractor={(log) => String(log.id)}
-        contentContainerClassName="gap-sm pb-2xl"
+        contentContainerClassName="gap-sm"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <View className="gap-md pb-md">
-            <Card>
-              <SleepBarChart data={chartData} />
-            </Card>
-            <View className="flex-row gap-md">
-              <Card className="flex-1 items-center">
-                <Text variant="xl" weight="bold">
-                  {formatDurationMinutes(averageMinutes)}
-                </Text>
-                <Text variant="sm" color="secondary">
-                  average
-                </Text>
+          logs.length > 0 ? (
+            <View className="gap-md pb-md">
+              <Card>
+                <SleepBarChart data={chartData} />
               </Card>
-              <Card className="flex-1 items-center">
-                <Text variant="xl" weight="bold">
-                  {consistency}%
-                </Text>
-                <Text variant="sm" color="secondary">
-                  consistency
-                </Text>
-              </Card>
+              <View className="flex-row gap-md">
+                <StatCard
+                  label="Average"
+                  value={formatDurationMinutes(averageMinutes)}
+                  icon={<Ionicons name="moon-outline" size={16} color={colors.info} />}
+                />
+                <StatCard
+                  label="Consistency"
+                  value={`${consistency}%`}
+                  valueColor="success"
+                  icon={<Ionicons name="pulse-outline" size={16} color={colors.success} />}
+                />
+              </View>
             </View>
-          </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          logs.length === 0 ? (
+            <EmptyState
+              icon={<Ionicons name="moon-outline" size={40} color={colors.textMuted} />}
+              title="No sleep logs yet"
+              description="Log tonight's bedtime and wake time to start tracking."
+              actionLabel="Add sleep log"
+              onAction={openCreate}
+            />
+          ) : (
+            <Text variant="sm" color="muted" className="py-lg text-center">
+              No logs in the last {range} days.
+            </Text>
+          )
         }
         renderItem={({ item }) => <SleepLogRow log={item} onPress={() => openEdit(item)} />}
-        ListFooterComponent={
-          <Button variant="outline" onPress={openCreate} className="mt-sm">
-            + Add sleep log
-          </Button>
-        }
       />
+
+      <Pressable
+        onPress={openCreate}
+        accessibilityRole="button"
+        accessibilityLabel="Add sleep log"
+        className="absolute bottom-xl right-lg h-14 w-14 items-center justify-center rounded-full bg-primary active:opacity-80"
+        style={{ bottom: insets.bottom + 24 }}
+      >
+        <Ionicons name="add" size={28} color={colors.primaryText} />
+      </Pressable>
 
       <SleepLogFormSheet
         visible={formVisible}
