@@ -83,18 +83,39 @@ function ThemedStatusBar() {
   );
 }
 
+/**
+ * Own component (not inlined in RootLayout) so useTheme() runs as a
+ * descendant of ThemeProvider — the settings modal is the one screen at
+ * this level with a native header, and without an explicit headerStyle it
+ * defaults to a plain white bar that ignores dark mode (see habits/_layout.tsx
+ * for the same fix applied to that stack's header).
+ */
+function RootStack() {
+  const { colors } = useTheme();
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="settings"
+        options={{
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Settings',
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.textPrimary,
+          headerShadowVisible: false,
+        }}
+      />
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <MigrationGate>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="settings"
-              options={{ presentation: 'modal', headerShown: true, title: 'Settings' }}
-            />
-          </Stack>
+          <RootStack />
         </MigrationGate>
         <ThemedStatusBar />
       </ThemeProvider>

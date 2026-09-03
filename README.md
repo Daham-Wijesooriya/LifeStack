@@ -4,32 +4,43 @@ A personal life-tracking app built with Expo (React Native) — habits, to-dos, 
 
 ## Screenshots
 
+Every screen supports both themes — toggle in Settings.
+
 <table>
   <tr>
-    <td align="center" width="240">
-      <img src="image/Dashboard.jpeg" width="220" alt="Dashboard screen" /><br />
-      <sub>Dashboard</sub>
-    </td>
-    <td align="center" width="240">
-      <img src="image/Habit.jpeg" width="220" alt="Habits screen" /><br />
-      <sub>Habits</sub>
-    </td>
-    <td align="center" width="240">
-      <img src="image/todo.jpeg" width="220" alt="Day Planner screen" /><br />
-      <sub>Day Planner</sub>
-    </td>
+    <th align="center" width="240">Light</th>
+    <th align="center" width="240">Dark</th>
   </tr>
   <tr>
-    <td align="center" width="240">
-      <img src="image/sleep.jpeg" width="220" alt="Sleep screen" /><br />
-      <sub>Sleep</sub>
-    </td>
-    <td align="center" width="240">
-      <img src="image/finance.jpeg" width="220" alt="Finance screen" /><br />
-      <sub>Finance</sub>
-    </td>
-    <td></td>
+    <td align="center"><img src="image/Dashboard-light.jpeg" width="220" alt="Dashboard, light mode" /></td>
+    <td align="center"><img src="image/Dashboard-dark.jpeg" width="220" alt="Dashboard, dark mode" /></td>
   </tr>
+  <tr><td colspan="2" align="center"><sub>Dashboard</sub></td></tr>
+  <tr>
+    <td align="center"><img src="image/Habit-light.jpeg" width="220" alt="Habits, light mode" /></td>
+    <td align="center"><img src="image/Habit-dark.jpeg" width="220" alt="Habits, dark mode" /></td>
+  </tr>
+  <tr><td colspan="2" align="center"><sub>Habits</sub></td></tr>
+  <tr>
+    <td align="center"><img src="image/todo-light.jpeg" width="220" alt="Day Planner, light mode" /></td>
+    <td align="center"><img src="image/todo-dark.jpeg" width="220" alt="Day Planner, dark mode" /></td>
+  </tr>
+  <tr><td colspan="2" align="center"><sub>Day Planner</sub></td></tr>
+  <tr>
+    <td align="center"><img src="image/sleep-light.jpeg" width="220" alt="Sleep, light mode" /></td>
+    <td align="center"><img src="image/sleep-dark.jpeg" width="220" alt="Sleep, dark mode" /></td>
+  </tr>
+  <tr><td colspan="2" align="center"><sub>Sleep</sub></td></tr>
+  <tr>
+    <td align="center"><img src="image/finance-light.jpeg" width="220" alt="Finance, light mode" /></td>
+    <td align="center"><img src="image/finance-dark.jpeg" width="220" alt="Finance, dark mode" /></td>
+  </tr>
+  <tr><td colspan="2" align="center"><sub>Finance</sub></td></tr>
+  <tr>
+    <td align="center"><img src="image/settings-light.jpeg" width="220" alt="Settings, light mode" /></td>
+    <td align="center"><img src="image/settings-dark.jpeg" width="220" alt="Settings, dark mode" /></td>
+  </tr>
+  <tr><td colspan="2" align="center"><sub>Settings</sub></td></tr>
 </table>
 
 ## Tech stack
