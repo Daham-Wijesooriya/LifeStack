@@ -1,0 +1,87 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v1.0.1, or leave empty to use package.json version)'
+        required: false
+        default: ''
+      release_notes:
+        description: 'Custom release notes (leave empty to generate automatically)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle Wrapper executable
+        run: chmod +x ./android/gradlew
+
+      - name: Build Android Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Determine Release Tag & Title
+        id: release_meta
+        run: |
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            PKG_VER=$(node -p "require('./package.json').version")
+            TAG="v${PKG_VER}"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "title=LifeStack ${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare APK Asset
+        run: |
+          mkdir -p release-artifacts
+          cp android/app/build/outputs/apk/release/app-release.apk "release-artifacts/LifeStack-${{ steps.release_meta.outputs.tag }}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "release-artifacts/LifeStack.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tag }}
+          name: ${{ steps.release_meta.outputs.title }}
+          body: ${{ github.event.inputs.release_notes }}
+          generate_release_notes: true
+          files: |
+            release-artifacts/LifeStack-${{ steps.release_meta.outputs.tag }}.apk
+            release-artifacts/LifeStack.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
