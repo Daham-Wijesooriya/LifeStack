@@ -111,6 +111,21 @@ export default function FinanceScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
         ListHeaderComponent={
           <View className="gap-md pb-md">
+            <StatCard
+              className="w-full"
+              label="Net"
+              value={formatCurrency(stats.monthNet, currency)}
+              valueColor={stats.monthNet > 0 ? 'success' : stats.monthNet < 0 ? 'danger' : 'primary'}
+              valueVariant="2xl"
+              icon={<Ionicons name="wallet-outline" size={18} color={colors.primary} />}
+              sublabel={
+                carryIn !== 0
+                  ? `Includes ${formatCurrency(carryIn, currency)} carried over from before ${formatMonthLabel(currentMonth)}`
+                  : undefined
+              }
+              sublabelColor="muted"
+            />
+
             <View className="flex-row gap-md">
               <StatCard
                 label="Income"
@@ -124,18 +139,7 @@ export default function FinanceScreen() {
                 valueColor="danger"
                 icon={<Ionicons name="arrow-down-circle-outline" size={16} color={colors.danger} />}
               />
-              <StatCard
-                label="Net"
-                value={formatCurrency(stats.monthNet, currency)}
-                icon={<Ionicons name="wallet-outline" size={16} color={colors.primary} />}
-              />
             </View>
-
-            {carryIn !== 0 ? (
-              <Text variant="xs" color="muted">
-                Includes {formatCurrency(carryIn, currency)} carried over from before {formatMonthLabel(currentMonth)}
-              </Text>
-            ) : null}
 
             <Card className="gap-sm">
               <Text weight="semibold">Spending by category</Text>
